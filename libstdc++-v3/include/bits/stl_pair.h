@@ -218,6 +218,38 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 #endif // C++11
 
 #if __glibcxx_tuple_like // >= C++23
+  namespace __detail
+  {
+  template <std::size_t _Ip>
+  struct __get_element_fn
+  {
+      template <typename _TupleLike> requires requires {
+          typename std::tuple_size<std::remove_cvref_t<_TupleLike>>::type;
+      }
+      constexpr auto operator()(_TupleLike&& __tuple_like) const ->
+          decltype(auto)
+      {
+          constexpr bool __get_member_well_formed = requires {
+              std::forward<_TupleLike>(__tuple_like).template get<_Ip>();
+          };
+          if constexpr (__get_member_well_formed)
+          {
+              return std::forward<_TupleLike>(__tuple_like).template get<_Ip>();
+          }
+          return get<_Ip>(std::forward<_TupleLike>(__tuple_like));
+      }
+  };
+  } // namespace __detail
+
+  inline namespace __get_element_namespace
+  {
+  template <std::size_t _Ip>
+  inline constexpr __detail::__get_element_fn<_Ip> get_element;
+  } // inline namespace __get_element_namespace
+
+  inline constexpr auto get_key = get_element<0>;
+  inline constexpr auto get_value = get_element<1>;
+
   template<typename _Tp>
     inline constexpr bool __is_tuple_v = false;
 
@@ -239,8 +271,31 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 
   // __is_tuple_like_v<subrange> is defined in <bits/ranges_util.h>.
 
-  template<typename _Tp>
-    concept __tuple_like = __is_tuple_like_v<remove_cvref_t<_Tp>>;
+  // necessary to check if std::tuple_size_v is well-formed before using it
+  template <class _Tp>
+    concept __has_tuple_size = // exposition only
+      requires {
+          typename std::tuple_size<_Tp>::type;
+      };
+
+  template<class _Tp, std::size_t _Ip>
+    concept __can_get_tuple_element = // exposition only
+      __has_tuple_size<std::remove_cvref_t<_Tp>> &&
+      requires(_Tp&& t) {
+          typename std::tuple_element_t<_Ip, std::remove_cvref_t<_Tp>>;
+          { std::get_element<_Ip>(std::forward<_Tp>(t)) } ->
+              std::convertible_to<const std::remove_cvref_t<std::tuple_element_t<_Ip, std::remove_cvref_t<_Tp>>>&>;
+      };
+
+  template <typename _Tp>
+    concept __tuple_like = // exposition only
+      __has_tuple_size<std::remove_cvref_t<_Tp>> &&
+      []<std::size_t... _Ip>(std::index_sequence<_Ip...>) {
+          return (... && __can_get_tuple_element<_Tp, _Ip>);
+      } (std::make_index_sequence<std::tuple_size_v<std::remove_cvref_t<_Tp>>>{});
+
+  // template<typename _Tp>
+  //   concept __tuple_like = __is_tuple_like_v<remove_cvref_t<_Tp>>;
 
   template<typename _Tp>
     concept __pair_like = __tuple_like<_Tp> && tuple_size_v<remove_cvref_t<_Tp>> == 2;
@@ -399,24 +454,24 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	static constexpr bool
 	_S_constructible_from_pair_like()
 	{
-	  return _S_constructible<decltype(std::get<0>(std::declval<_UPair>())),
-				  decltype(std::get<1>(std::declval<_UPair>()))>();
+	  return _S_constructible<decltype(std::get_element<0>(std::declval<_UPair>())),
+				  decltype(std::get_element<1>(std::declval<_UPair>()))>();
 	}
 
       template<typename _UPair>
 	static constexpr bool
 	_S_convertible_from_pair_like()
 	{
-	  return _S_convertible<decltype(std::get<0>(std::declval<_UPair>())),
-				decltype(std::get<1>(std::declval<_UPair>()))>();
+	  return _S_convertible<decltype(std::get_element<0>(std::declval<_UPair>())),
+				decltype(std::get_element<1>(std::declval<_UPair>()))>();
 	}
 
       template<typename _UPair>
 	static constexpr bool
 	_S_dangles_from_pair_like()
 	{
-	  return _S_dangles<decltype(std::get<0>(std::declval<_UPair>())),
-			    decltype(std::get<1>(std::declval<_UPair>()))>();
+	  return _S_dangles<decltype(std::get_element<0>(std::declval<_UPair>())),
+			    decltype(std::get_element<1>(std::declval<_UPair>()))>();
 	}
 #endif // C++23
       /// @endcond
@@ -523,8 +578,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	  && (!_S_dangles_from_pair_like<_UPair>())
 	constexpr explicit(!_S_convertible_from_pair_like<_UPair>())
 	pair(_UPair&& __p)
-	: first(std::get<0>(std::forward<_UPair>(__p))),
-	  second(std::get<1>(std::forward<_UPair>(__p)))
+	: first(std::get_element<0>(std::forward<_UPair>(__p))),
+	  second(std::get_element<1>(std::forward<_UPair>(__p)))
 	{ }
 
       template<__eligible_pair_like<pair> _UPair>
@@ -568,16 +623,16 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	static constexpr bool
 	_S_assignable_from_tuple_like()
 	{
-	  return _S_assignable<decltype(std::get<0>(std::declval<_UPair>())),
-			       decltype(std::get<1>(std::declval<_UPair>()))>();
+	  return _S_assignable<decltype(std::get_element<0>(std::declval<_UPair>())),
+			       decltype(std::get_element<1>(std::declval<_UPair>()))>();
 	}
 
       template<typename _UPair>
 	static constexpr bool
 	_S_const_assignable_from_tuple_like()
 	{
-	  return _S_const_assignable<decltype(std::get<0>(std::declval<_UPair>())),
-				     decltype(std::get<1>(std::declval<_UPair>()))>();
+	  return _S_const_assignable<decltype(std::get_element<0>(std::declval<_UPair>())),
+				     decltype(std::get_element<1>(std::declval<_UPair>()))>();
 	}
 #endif // C++23
       /// @endcond
@@ -682,8 +737,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	constexpr pair&
 	operator=(_UPair&& __p)
 	{
-	  first = std::get<0>(std::forward<_UPair>(__p));
-	  second = std::get<1>(std::forward<_UPair>(__p));
+	  first = std::get_element<0>(std::forward<_UPair>(__p));
+	  second = std::get_element<1>(std::forward<_UPair>(__p));
 	  return *this;
 	}
 
@@ -692,8 +747,8 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	constexpr const pair&
 	operator=(_UPair&& __p) const
 	{
-	  first = std::get<0>(std::forward<_UPair>(__p));
-	  second = std::get<1>(std::forward<_UPair>(__p));
+	  first = std::get_element<0>(std::forward<_UPair>(__p));
+	  second = std::get_element<1>(std::forward<_UPair>(__p));
 	  return *this;
 	}
 #endif // C++23

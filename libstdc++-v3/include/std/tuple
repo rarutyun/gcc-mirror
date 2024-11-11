@@ -363,7 +363,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       template<typename _UTuple, size_t... _Is>
 	constexpr
 	_Tuple_impl(__tuple_like_tag_t, _UTuple&& __u, index_sequence<_Is...>)
-	: _Tuple_impl(std::get<_Is>(std::forward<_UTuple>(__u))...)
+	: _Tuple_impl(std::get_element<_Is>(std::forward<_UTuple>(__u))...)
 	{ }
 #endif // C++23
 
@@ -458,7 +458,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	constexpr
 	_Tuple_impl(__tuple_like_tag_t, allocator_arg_t __tag, const _Alloc& __a,
 		    _UTuple&& __u, index_sequence<_Is...>)
-	: _Tuple_impl(__tag, __a, std::get<_Is>(std::forward<_UTuple>(__u))...)
+	: _Tuple_impl(__tag, __a, std::get_element<_Is>(std::forward<_UTuple>(__u))...)
 	{ }
 #endif // C++23
 
@@ -509,7 +509,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	constexpr void
 	_M_assign(__tuple_like_tag_t __tag, _UTuple&& __u)
 	{
-	  _M_head(*this) = std::get<_Idx>(std::forward<_UTuple>(__u));
+	  _M_head(*this) = std::get_element<_Idx>(std::forward<_UTuple>(__u));
 	  _M_tail(*this)._M_assign(__tag, std::forward<_UTuple>(__u));
 	}
 
@@ -517,7 +517,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	constexpr void
 	_M_assign(__tuple_like_tag_t __tag, _UTuple&& __u) const
 	{
-	  _M_head(*this) = std::get<_Idx>(std::forward<_UTuple>(__u));
+	  _M_head(*this) = std::get_element<_Idx>(std::forward<_UTuple>(__u));
 	  _M_tail(*this)._M_assign(__tag, std::forward<_UTuple>(__u));
 	}
 #endif // C++23
@@ -619,7 +619,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
       template<typename _UTuple>
 	constexpr
 	_Tuple_impl(__tuple_like_tag_t, _UTuple&& __u, index_sequence<0>)
-	: _Tuple_impl(std::get<0>(std::forward<_UTuple>(__u)))
+	: _Tuple_impl(std::get_element<0>(std::forward<_UTuple>(__u)))
 	{ }
 #endif // C++23
 
@@ -698,7 +698,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	constexpr
 	_Tuple_impl(__tuple_like_tag_t, allocator_arg_t __tag, const _Alloc& __a,
 		    _UTuple&& __u, index_sequence<0>)
-	: _Tuple_impl(__tag, __a, std::get<0>(std::forward<_UTuple>(__u)))
+	: _Tuple_impl(__tag, __a, std::get_element<0>(std::forward<_UTuple>(__u)))
 	{ }
 #endif // C++23
 
@@ -740,12 +740,12 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     template<typename _UTuple>
       constexpr void
       _M_assign(__tuple_like_tag_t, _UTuple&& __u)
-      { _M_head(*this) = std::get<_Idx>(std::forward<_UTuple>(__u)); }
+      { _M_head(*this) = std::get_element<_Idx>(std::forward<_UTuple>(__u)); }
 
     template<typename _UTuple>
       constexpr void
       _M_assign(__tuple_like_tag_t, _UTuple&& __u) const
-      { _M_head(*this) = std::get<_Idx>(std::forward<_UTuple>(__u)); }
+      { _M_head(*this) = std::get_element<_Idx>(std::forward<_UTuple>(__u)); }
 #endif // C++23
 
     protected:
@@ -935,7 +935,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	__dangles_from_tuple_like()
 	{
 	  return []<size_t... _Is>(index_sequence<_Is...>) {
-	    return __dangles<decltype(std::get<_Is>(std::declval<_UTuple>()))...>();
+	    return __dangles<decltype(std::get_element<_Is>(std::declval<_UTuple>()))...>();
 	  }(index_sequence_for<_Elements...>{});
 	}
 
@@ -944,7 +944,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	__constructible_from_tuple_like()
 	{
 	  return []<size_t... _Is>(index_sequence<_Is...>) {
-	    return __constructible<decltype(std::get<_Is>(std::declval<_UTuple>()))...>();
+	    return __constructible<decltype(std::get_element<_Is>(std::declval<_UTuple>()))...>();
 	  }(index_sequence_for<_Elements...>{});
 	}
 
@@ -953,7 +953,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	__convertible_from_tuple_like()
 	{
 	  return []<size_t... _Is>(index_sequence<_Is...>) {
-	    return __convertible<decltype(std::get<_Is>(std::declval<_UTuple>()))...>();
+	    return __convertible<decltype(std::get_element<_Is>(std::declval<_UTuple>()))...>();
 	  }(index_sequence_for<_Elements...>{});
 	}
 #endif // C++23
@@ -1690,7 +1690,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	__assignable_from_tuple_like()
 	{
 	  return []<size_t... _Is>(index_sequence<_Is...>) {
-	    return __assignable<decltype(std::get<_Is>(std::declval<_UTuple>()))...>();
+	    return __assignable<decltype(std::get_element<_Is>(std::declval<_UTuple>()))...>();
 	  }(index_sequence_for<_Elements...>{});
 	}
 
@@ -1699,7 +1699,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	__const_assignable_from_tuple_like()
 	{
 	  return []<size_t... _Is>(index_sequence<_Is...>) {
-	    return __const_assignable<decltype(std::get<_Is>(std::declval<_UTuple>()))...>();
+	    return __const_assignable<decltype(std::get_element<_Is>(std::declval<_UTuple>()))...>();
 	  }(index_sequence_for<_Elements...>{});
 	}
 #endif // C++23
@@ -1853,7 +1853,7 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	  static_assert(sizeof...(_Elements) == tuple_size_v<_UTuple>,
 	      "tuple objects can only be compared if they have equal sizes.");
 	  return [&]<size_t... _Is>(index_sequence<_Is...>) {
-	    return (bool(std::get<_Is>(__t) == std::get<_Is>(__u))
+	    return (bool(std::get_element<_Is>(__t) == std::get_element<_Is>(__u))
 		    && ...);
 	  }(index_sequence_for<_Elements...>{});
 	}
@@ -2577,7 +2577,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 		index_sequence<_Idx0, _Idxs...>)
     {
       auto __c
+#if __cpp_lib_tuple_like // >= C++23
+	= __detail::__synth3way(std::get_element<_Idx0>(__t), std::get_element<_Idx0>(__u));
+#else
 	= __detail::__synth3way(std::get<_Idx0>(__t), std::get<_Idx0>(__u));
+#endif
       if (__c != 0)
 	return __c;
       return std::__tuple_cmp<_Cat>(__t, __u, index_sequence<_Idxs...>());
@@ -2744,7 +2748,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 	  typedef __tuple_concater<_Ret, __idx, _Tpls...>      __next;
 	  return __next::_S_do(std::forward<_Tpls>(__tps)...,
 			       std::forward<_Us>(__us)...,
+#if __cpp_lib_tuple_like // >= C++23	  
+			       std::get_element<_Is>(std::forward<_Tp>(__tp))...);
+#else
 			       std::get<_Is>(std::forward<_Tp>(__tp))...);
+#endif
 	}
     };
 
@@ -2919,7 +2927,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
     __apply_impl(_Fn&& __f, _Tuple&& __t, index_sequence<_Idx...>)
     {
       return std::__invoke(std::forward<_Fn>(__f),
-			   std::get<_Idx>(std::forward<_Tuple>(__t))...);
+#if __cpp_lib_tuple_like // >= C++23
+			   std::get_element<_Idx>(std::forward<_Tuple>(__t))...);
+#else
+               std::get<_Idx>(std::forward<_Tuple>(__t))...);
+#endif
     }
 
 #if __cpp_lib_tuple_like // >= C++23
@@ -2943,7 +2955,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
   template <typename _Tp, typename _Tuple, size_t... _Idx>
     constexpr _Tp
     __make_from_tuple_impl(_Tuple&& __t, index_sequence<_Idx...>)
-    { return _Tp(std::get<_Idx>(std::forward<_Tuple>(__t))...); }
+#if __cpp_lib_tuple_like // >= C++23
+    { return _Tp(std::get_element<_Idx>(std::forward<_Tuple>(__t))...); }
+#else
+	{ return _Tp(std::get<_Idx>(std::forward<_Tuple>(__t))...); }
+#endif
 
 #if __cpp_lib_tuple_like // >= C++23
   template <typename _Tp, __tuple_like _Tuple>
@@ -2958,7 +2974,11 @@ _GLIBCXX_BEGIN_NAMESPACE_VERSION
 #if __has_builtin(__reference_constructs_from_temporary)
       if constexpr (__n == 1)
 	{
+#if __cpp_lib_tuple_like // >= C++23
+	  using _Elt = decltype(std::get_element<0>(std::declval<_Tuple>()));
+#else
 	  using _Elt = decltype(std::get<0>(std::declval<_Tuple>()));
+#endif
 	  static_assert(!__reference_constructs_from_temporary(_Tp, _Elt));
 	}
 #endif
