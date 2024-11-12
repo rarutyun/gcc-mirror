@@ -308,12 +308,12 @@ test05()
   // template<tuple-like TTuple, tuple-like UTuple>
   //   struct common_type<TTuple, UTuple>;
 
-  static_assert( std::same_as<std::common_type_t<tuple_like_t<const int&>,
+  static_assert( std::same_as<std::common_type_t<tuple_like_t<const int>,
 						 tuple<int, long, int>>,
 			      tuple<int, long, int>> );
 
   static_assert( std::same_as<std::common_type_t<tuple<int, long, int>,
-						 tuple_like_t<const int&>>,
+						 tuple_like_t<const int>>,
 			      tuple<int, long, int>> );
 
   return true;

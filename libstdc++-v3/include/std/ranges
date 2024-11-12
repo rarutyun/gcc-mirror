@@ -4283,7 +4283,11 @@ namespace views::__adaptor
 	  {
 	    using _Base = elements_view::_Base<_Const>;
 	    using _Cat = typename iterator_traits<iterator_t<_Base>>::iterator_category;
+#if __cpp_lib_tuple_like // >= C++23
+	    using _Res = decltype((std::get_element<_Nm>(*std::declval<iterator_t<_Base>>())));
+#else
 	    using _Res = decltype((std::get<_Nm>(*std::declval<iterator_t<_Base>>())));
+#endif
 	    if constexpr (!is_lvalue_reference_v<_Res>)
 	      return input_iterator_tag{};
 	    else if constexpr (derived_from<_Cat, random_access_iterator_tag>)
@@ -4310,11 +4314,19 @@ namespace views::__adaptor
 	  _S_get_element(const iterator_t<_Base>& __i)
 	  {
 	    if constexpr (is_reference_v<range_reference_t<_Base>>)
-	      return std::get<_Nm>(*__i);
+#if __cpp_lib_tuple_like // >= C++23
+	      return std::get_element<_Nm>(*__i);
+#else
+        return std::get<_Nm>(*__i);
+#endif
 	    else
 	      {
 		using _Et = remove_cv_t<tuple_element_t<_Nm, range_reference_t<_Base>>>;
+#if __cpp_lib_tuple_like // >= C++23
+		return static_cast<_Et>(std::get_element<_Nm>(*__i));
+#else
 		return static_cast<_Et>(std::get<_Nm>(*__i));
+#endif
 	      }
 	  }
 
@@ -5399,7 +5411,7 @@ namespace views::__adaptor
   {
     // Yields tuple<_Tp, ..., _Tp> with _Nm elements.
     template<typename _Tp, size_t _Nm>
-      using __repeated_tuple = decltype(std::tuple_cat(std::declval<array<_Tp, _Nm>>()));
+      using __repeated_tuple = decltype(std::tuple_cat(std::declval<array<std::decay_t<_Tp>, _Nm>>()));
 
     // For a functor F that is callable with N arguments, the expression
     // declval<__unarize<F, N>>(x) is equivalent to declval<F>(x, ..., x).
